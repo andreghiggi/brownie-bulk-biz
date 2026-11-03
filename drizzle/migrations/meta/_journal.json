@@ -15,6 +15,13 @@
       "when": 1793710680978,
       "tag": "0001_leads_extra_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793712197862,
+      "tag": "0002_leads_email_deprecated",
+      "breakpoints": true
     }
   ]
 }
