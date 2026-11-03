@@ -1,19 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LeadForm } from "@/components/LeadForm";
 import { BrownieImage } from "@/components/BrownieImage";
+import { whatsappLink } from "@/lib/whatsapp";
+import { getRequestOrigin } from "@/lib/origin.functions";
 import hero from "@/assets/hero-brownie.jpg";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Brownie Duguga | Revenda brownies no seu negócio (CNPJ)" },
-      { name: "description", content: "Fábrica de brownies com cacau de verdade. Venda exclusiva para empresas com pedido mínimo por lote. Cadastre-se e receba a tabela de atacado." },
-      { property: "og:title", content: "Brownie Duguga | Seja um revendedor" },
-      { property: "og:description", content: "Brownies artesanais em escala para mercadinhos, conveniências, lanchonetes, cafés e farmácias." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  loader: async () => ({ origin: await getRequestOrigin() }),
+  head: ({ loaderData }) => {
+    const desc = "Brownie Duguga | 🤎Feito com cacau 100% | 📍Janga, Paulista - PE | 📦 Envios para todo estado de Pernambuco";
+    const img = `${loaderData?.origin ?? ""}/og-brownie.jpg`;
+    return {
+      meta: [
+        { title: "Brownie Duguga | Revenda brownies no seu negócio" },
+        { name: "description", content: desc },
+        { property: "og:title", content: "Brownie Duguga" },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: img },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: img },
+      ],
+    };
+  },
   component: Index,
 });
 
@@ -157,10 +168,16 @@ function Index() {
         <a href="#cadastro" className="mt-10 inline-block rounded-xl bg-primary px-10 py-4 font-bold text-primary-foreground hover:bg-primary/90">Fazer meu cadastro</a>
       </section>
 
+      <a href={whatsappLink()} target="_blank" rel="noreferrer" aria-label="Falar no WhatsApp"
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-success px-5 py-3 font-bold text-primary-foreground shadow-2xl hover:opacity-90">
+        WhatsApp
+      </a>
+
       <footer className="bg-cocoa py-10 text-cocoa-foreground">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm md:flex-row">
           <p className="font-display text-xl font-extrabold">Brownie<span className="text-accent"> Duguga</span></p>
           <p className="opacity-70">Vendas exclusivas para empresas (CNPJ)</p>
+          <a href={whatsappLink()} target="_blank" rel="noreferrer" className="font-semibold hover:text-accent">(81) 9603-5471</a>
           <a href="https://www.instagram.com/brownieduguga/" target="_blank" rel="noreferrer" className="font-semibold hover:text-accent">@brownieduguga</a>
         </div>
       </footer>
