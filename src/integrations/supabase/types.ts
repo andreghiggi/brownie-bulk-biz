@@ -31,7 +31,7 @@ export type Database = {
           consentimento?: boolean
           created_at?: string
           documento: string
-          email: string
+          email?: string
           id?: string
           nome: string
           tipo_documento?: string
