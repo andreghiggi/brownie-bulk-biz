@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { whatsappLink } from "@/lib/whatsapp";
 import { maskDoc, maskPhone, onlyDigits, tipoDocumento } from "@/lib/documento";
 
 const schema = z.object({
@@ -15,7 +16,10 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-const WHATSAPP = (import.meta.env['VITE_WHATSAPP_COMERCIAL'] as string | undefined) ?? "";
+
+function leadText(d: FormData & { tipo: string }) {
+  return `Olá! Quero revender Brownie Duguga.\n\n*Nome:* ${d.nome}\n*WhatsApp:* ${d.whatsapp}\n*E-mail:* ${d.email}\n*Cidade:* ${d.cidade}\n*${d.tipo}:* ${d.documento}`;
+}
 
 export function LeadForm() {
   const [done, setDone] = useState<(FormData & { tipo: string }) | null>(null);
@@ -46,11 +50,11 @@ export function LeadForm() {
       return;
     }
     setDone({ ...data, tipo: t });
+    window.open(whatsappLink(leadText({ ...data, tipo: t })), "_blank");
     reset();
   }
 
   if (done) {
-    const text = `Olá! Quero revender Brownie Duguga.\nNome: ${done.nome}\nWhatsApp: ${done.whatsapp}\nE-mail: ${done.email}\nCidade: ${done.cidade}\n${done.tipo}: ${done.documento}`;
     return (
       <div className="rounded-3xl bg-card p-7 text-card-foreground shadow-2xl md:p-9">
         <p className="font-mono text-xs uppercase tracking-widest text-accent">Cadastro recebido</p>
@@ -61,8 +65,8 @@ export function LeadForm() {
             <div key={k} className="flex justify-between gap-4"><dt className="text-muted-foreground">{k}</dt><dd className="font-semibold">{v}</dd></div>
           ))}
         </dl>
-        {WHATSAPP && (
-          <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"
+        {(
+          <a href={whatsappLink(leadText(done))} target="_blank" rel="noreferrer"
             className="mt-6 block rounded-xl bg-primary py-4 text-center font-bold text-primary-foreground hover:bg-primary/90">
             Agilizar pelo WhatsApp
           </a>
