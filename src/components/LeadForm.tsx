@@ -15,7 +15,7 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-const WHATSAPP = (import.meta.env.VITE_WHATSAPP_COMERCIAL as string | undefined) ?? "";
+const WHATSAPP = (import.meta.env['VITE_WHATSAPP_COMERCIAL'] as string | undefined) ?? "";
 
 export function LeadForm() {
   const [done, setDone] = useState<(FormData & { tipo: string }) | null>(null);
@@ -73,7 +73,7 @@ export function LeadForm() {
   }
 
   const input = "mt-1 w-full rounded-xl border border-input bg-background px-4 py-3 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30";
-  const Err = ({ m }: { m?: string }) => (m ? <span className="mt-1 block text-xs text-destructive">{m}</span> : null);
+  const Err = ({ m }: { m?: string | undefined }) => (m ? <span className="mt-1 block text-xs text-destructive">{m}</span> : null);
 
   return (
     <form id="cadastro" onSubmit={handleSubmit(onSubmit)} noValidate className="scroll-mt-28 rounded-3xl bg-card p-6 text-card-foreground shadow-2xl md:p-8">
