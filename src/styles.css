@@ -48,8 +48,9 @@
   --color-ring-offset-background: var(--background);
   --color-cocoa: var(--cocoa);
   --color-cocoa-foreground: var(--cocoa-foreground);
-  --font-display: "Fraunces", serif;
-  --font-sans: "Manrope", sans-serif;
+  --font-display: "Bricolage Grotesque", sans-serif;
+  --font-sans: "Figtree", sans-serif;
+  --font-mono: "DM Mono", monospace;
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
