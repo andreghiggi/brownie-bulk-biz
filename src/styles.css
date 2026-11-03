@@ -47,6 +47,9 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
   --color-cocoa: var(--cocoa);
+  --color-success: var(--success);
+  --color-cream: var(--cream);
+  --color-berry: var(--berry);
   --color-cocoa-foreground: var(--cocoa-foreground);
   --font-display: "Bricolage Grotesque", sans-serif;
   --font-sans: "Figtree", sans-serif;
@@ -87,6 +90,9 @@
   --border: oklch(0.86 0.025 65);
   --input: oklch(0.86 0.025 65);
   --ring: oklch(0.72 0.13 65);
+  --success: oklch(0.55 0.13 150);
+  --cream: oklch(0.94 0.03 85);
+  --berry: oklch(0.5 0.17 15);
   --cocoa: oklch(0.18 0.03 40);
   --cocoa-foreground: oklch(0.95 0.02 75);
   --chart-1: oklch(0.646 0.222 41.116);

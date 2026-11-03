@@ -1,16 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { LeadForm } from "@/components/LeadForm";
+import { BrownieImage } from "@/components/BrownieImage";
 import hero from "@/assets/hero-brownie.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Brownie Duguga | Brownies no atacado para empresas" },
-      { name: "description", content: "Fábrica de brownies com cacau de verdade. Venda Brownie Duguga no seu estabelecimento. Atendimento exclusivo para CNPJ com pedido mínimo." },
-      { property: "og:title", content: "Brownie Duguga | Brownies no atacado" },
-      { property: "og:description", content: "Revenda Brownie Duguga no seu mercadinho, conveniência, lanchonete ou farmácia." },
+      { title: "Brownie Duguga | Revenda brownies no seu negócio (CNPJ)" },
+      { name: "description", content: "Fábrica de brownies com cacau de verdade. Venda exclusiva para empresas com pedido mínimo por lote. Cadastre-se e receba a tabela de atacado." },
+      { property: "og:title", content: "Brownie Duguga | Seja um revendedor" },
+      { property: "og:description", content: "Brownies artesanais em escala para mercadinhos, conveniências, lanchonetes, cafés e farmácias." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -18,158 +17,152 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const schema = z.object({
-  nome: z.string().trim().min(2, "Informe seu nome").max(120),
-  whatsapp: z.string().trim().refine((v) => { const d = v.replace(/\D/g, ""); return d.length >= 10 && d.length <= 13; }, "WhatsApp com DDD inválido"),
-  email: z.string().trim().email("E-mail inválido").max(255),
-  cidade: z.string().trim().min(2, "Informe a cidade").max(120),
-  documento: z.string().trim().refine((v) => [11, 14].includes(v.replace(/\D/g, "").length), "CNPJ ou CPF inválido"),
-});
-type Form = z.infer<typeof schema>;
-const empty: Form = { nome: "", whatsapp: "", email: "", cidade: "", documento: "" };
-
-function maskPhone(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 2) return d;
-  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-}
-function maskDoc(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 14);
-  if (d.length <= 11)
-    return d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-  return d.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
-}
-
-function LeadForm() {
-  const [form, setForm] = useState<Form>(empty);
-  const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
-  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
-
-  const set = (k: keyof Form, v: string) => setForm((f) => ({ ...f, [k]: k === "whatsapp" ? maskPhone(v) : k === "documento" ? maskDoc(v) : v }));
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const r = schema.safeParse(form);
-    if (!r.success) {
-      const errs: typeof errors = {};
-      r.error.issues.forEach((i) => (errs[i.path[0] as keyof Form] = i.message));
-      setErrors(errs);
-      return;
-    }
-    setErrors({});
-    setStatus("sending");
-    const { error } = await supabase.from("leads").insert(r.data);
-    setStatus(error ? "error" : "ok");
-    if (!error) setForm(empty);
-  }
-
-  if (status === "ok")
-    return (
-      <div className="rounded-2xl bg-card p-8 text-center shadow-2xl">
-        <p className="font-display text-3xl text-primary">Recebemos seu cadastro!</p>
-        <p className="mt-3 text-muted-foreground">Nossa equipe comercial vai entrar em contato pelo WhatsApp em breve.</p>
-        <button onClick={() => setStatus("idle")} className="mt-6 text-sm font-semibold text-primary underline">Enviar outro cadastro</button>
-      </div>
-    );
-
-  const fields: { k: keyof Form; label: string; type?: string; ph: string }[] = [
-    { k: "nome", label: "Nome", ph: "Seu nome completo" },
-    { k: "whatsapp", label: "WhatsApp (com DDD)", type: "tel", ph: "(81) 99999-9999" },
-    { k: "email", label: "E-mail", type: "email", ph: "voce@empresa.com.br" },
-    { k: "cidade", label: "Cidade", ph: "Ex.: Recife - PE" },
-    { k: "documento", label: "CNPJ / CPF", ph: "00.000.000/0000-00" },
-  ];
-
-  return (
-    <form onSubmit={submit} className="rounded-2xl bg-card p-6 shadow-2xl md:p-8" noValidate>
-      <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Seja um revendedor</p>
-      <h2 className="mt-2 font-display text-2xl text-card-foreground md:text-3xl">Solicite a tabela de atacado</h2>
-      <div className="mt-6 grid gap-4">
-        {fields.map((f) => (
-          <label key={f.k} className="block">
-            <span className="text-sm font-semibold text-card-foreground">{f.label}</span>
-            <input
-              type={f.type ?? "text"}
-              value={form[f.k]}
-              onChange={(e) => set(f.k, e.target.value)}
-              placeholder={f.ph}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-4 py-3 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30"
-            />
-            {errors[f.k] && <span className="mt-1 block text-xs text-destructive">{errors[f.k]}</span>}
-          </label>
-        ))}
-      </div>
-      <button disabled={status === "sending"} className="mt-6 w-full rounded-lg bg-primary py-4 font-bold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60">
-        {status === "sending" ? "Enviando..." : "Quero revender Brownie Duguga"}
-      </button>
-      {status === "error" && <p className="mt-3 text-center text-sm text-destructive">Não foi possível enviar. Tente novamente.</p>}
-      <p className="mt-4 text-center text-xs text-muted-foreground">Atendimento exclusivo para empresas · Pedido mínimo</p>
-    </form>
-  );
-}
+const nav = [["Para quem", "#segmentos"], ["Produtos", "#produtos"], ["Como funciona", "#como-funciona"], ["Dúvidas", "#duvidas"]];
+const segmentos = [
+  ["Mercadinhos", "Giro rápido no caixa e na gôndola."],
+  ["Lojas de conveniência", "Compra por impulso, margem alta."],
+  ["Lanchonetes", "A sobremesa pronta do seu cardápio."],
+  ["Cafeterias", "O par perfeito para o café."],
+  ["Farmácias", "Item de checkout que vende sozinho."],
+  ["Empórios e padarias", "Qualidade que fideliza o cliente."],
+];
+const produtos: { nome: string; desc: string; tone: "dark" | "caramel" | "white" | "red" }[] = [
+  { nome: "Tradicional", desc: "Cacau intenso, casquinha crocante e miolo úmido.", tone: "dark" },
+  { nome: "Doce de leite", desc: "Recheio cremoso de doce de leite.", tone: "caramel" },
+  { nome: "Ninho", desc: "Cobertura cremosa de leite Ninho.", tone: "white" },
+  { nome: "Frutas vermelhas", desc: "Toque ácido que equilibra o chocolate.", tone: "red" },
+];
+const passos = [
+  ["Cadastre seu CNPJ", "Preencha o formulário e receba a tabela de atacado."],
+  ["Fale com o comercial", "Tiramos dúvidas e montamos o mix ideal."],
+  ["Faça o pedido mínimo", "Escolha sabores e quantidades por lote."],
+  ["Receba e venda", "Embalados individualmente, prontos para a vitrine."],
+];
+const faq = [
+  ["Vocês vendem para pessoa física?", "Não. Atendemos exclusivamente empresas com CNPJ, com pedido mínimo por lote."],
+  ["Qual é o pedido mínimo?", "O pedido mínimo é informado pela nossa equipe comercial junto com a tabela de atacado."],
+  ["Os brownies vêm embalados?", "Sim, cada unidade vem embalada individualmente, pronta para revenda."],
+  ["Como faço para começar?", "Preencha o cadastro no topo da página. Nossa equipe entra em contato pelo WhatsApp."],
+];
 
 function Index() {
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
-      <section className="relative overflow-hidden bg-cocoa text-cocoa-foreground">
-        <img src={hero} alt="Brownies Duguga" width={1280} height={1280} className="absolute inset-0 h-full w-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-r from-cocoa via-cocoa/85 to-cocoa/30" />
-        <header className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-          <span className="font-display text-2xl font-bold">Brownie <span className="text-accent">Duguga</span></span>
-          <a href="https://www.instagram.com/brownieduguga/" target="_blank" rel="noreferrer" className="text-sm font-semibold opacity-80 hover:opacity-100">@brownieduguga</a>
-        </header>
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-8 md:grid-cols-2 md:pt-16">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-cocoa-foreground/10 bg-cocoa/90 text-cocoa-foreground backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <a href="#" className="font-display text-2xl font-extrabold tracking-tight">Brownie<span className="text-accent"> Duguga</span></a>
+          <nav className="hidden gap-8 text-sm font-medium md:flex">
+            {nav.map(([l, h]) => <a key={h} href={h} className="opacity-80 hover:opacity-100">{l}</a>)}
+          </nav>
+          <a href="#cadastro" className="rounded-full bg-accent px-5 py-2 text-sm font-bold text-accent-foreground hover:bg-accent/90">Quero revender</a>
+        </div>
+      </header>
+
+      <section className="relative overflow-hidden bg-cocoa pt-24 text-cocoa-foreground">
+        <img src={hero} alt="" width={1280} height={1280} className="absolute inset-0 h-full w-full object-cover opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-cocoa via-cocoa/90 to-cocoa/40" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
           <div>
-            <span className="inline-block rounded-full border border-accent/50 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-accent">Fábrica · Venda para CNPJ</span>
-            <h1 className="mt-6 font-display text-5xl leading-[1.05] md:text-7xl">O brownie que <em className="text-accent">vende sozinho</em> no seu balcão.</h1>
-            <p className="mt-6 max-w-md text-lg opacity-80">Cacau de verdade, recheio Duguga e padrão de qualidade em cada unidade. Leve para o seu estabelecimento com condições de atacado.</p>
-            <div className="mt-8 flex gap-8 text-sm">
-              <div><p className="font-display text-3xl text-accent">100%</p><p className="opacity-70">cacau de verdade</p></div>
-              <div><p className="font-display text-3xl text-accent">B2B</p><p className="opacity-70">preço de fábrica</p></div>
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-accent">Fábrica · Atacado para CNPJ</span>
+            <h1 className="mt-5 font-display text-5xl font-extrabold leading-[0.98] tracking-tight md:text-7xl">O brownie que <span className="text-accent">vende sozinho</span> no seu balcão.</h1>
+            <p className="mt-6 max-w-md text-lg opacity-80">Cacau de verdade, recheio Duguga e padrão de qualidade em cada unidade. Leve para o seu estabelecimento com preço de fábrica.</p>
+            <div className="mt-10 flex gap-10">
+              {[["100%", "cacau de verdade"], ["B2B", "preço de fábrica"], ["1 a 1", "embalagem individual"]].map(([n, l]) => (
+                <div key={l}><p className="font-display text-3xl font-extrabold text-accent">{n}</p><p className="text-sm opacity-70">{l}</p></div>
+              ))}
             </div>
           </div>
           <LeadForm />
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-24">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Como funciona</p>
-        <h2 className="mt-3 max-w-2xl font-display text-4xl md:text-5xl">Somos fábrica. Você revende, a gente garante a qualidade.</h2>
-        <div className="mt-14 grid gap-8 md:grid-cols-3">
-          {[
-            ["01", "Cadastre sua empresa", "Preencha o formulário com seu CNPJ e receba nossa tabela de atacado."],
-            ["02", "Faça seu pedido mínimo", "Escolha os sabores e quantidades ideais para o seu ponto de venda."],
-            ["03", "Venda e lucre", "Brownies embalados individualmente, prontos para a vitrine."],
-          ].map(([n, t, d]) => (
-            <div key={n} className="border-t-2 border-primary pt-6">
-              <p className="font-display text-5xl text-accent">{n}</p>
-              <h3 className="mt-4 text-xl font-bold">{t}</h3>
-              <p className="mt-2 text-muted-foreground">{d}</p>
+      <div className="overflow-hidden bg-accent py-4 text-accent-foreground">
+        <p className="text-center font-mono text-sm font-medium uppercase tracking-widest">Somente pessoa jurídica • Pedido mínimo por lote • Produção artesanal em escala</p>
+      </div>
+
+      <section id="segmentos" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">Para quem vendemos</p>
+        <h2 className="mt-3 max-w-2xl font-display text-4xl font-extrabold md:text-5xl">Feito para quem vende.</h2>
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {segmentos.map(([t, d]) => (
+            <div key={t} className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:shadow-lg">
+              <h3 className="font-display text-xl font-bold">{t}</h3><p className="mt-2 text-muted-foreground">{d}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="bg-secondary py-24">
+      <section id="produtos" className="scroll-mt-24 bg-secondary py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <h2 className="font-display text-4xl md:text-5xl">Ideal para</h2>
-          <div className="mt-10 flex flex-wrap gap-3">
-            {["Mercadinhos", "Mercearias", "Lojas de conveniência", "Lanchonetes", "Farmácias", "Padarias", "Cafeterias", "Empórios"].map((x) => (
-              <span key={x} className="rounded-full bg-card px-6 py-3 font-semibold text-secondary-foreground shadow-sm">{x}</span>
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">Linha de produtos</p>
+          <h2 className="mt-3 font-display text-4xl font-extrabold md:text-5xl">Quatro sabores. Zero encalhe.</h2>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {produtos.map((p) => (
+              <article key={p.nome} className="overflow-hidden rounded-2xl bg-card shadow-sm">
+                <div className="aspect-square"><BrownieImage alt={`Brownie ${p.nome}`} tone={p.tone} /></div>
+                <div className="p-5"><h3 className="font-display text-xl font-bold">{p.nome}</h3><p className="mt-1 text-sm text-muted-foreground">{p.desc}</p></div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-6 py-24 text-center">
-        <h2 className="font-display text-4xl md:text-6xl">Pronto para ter Duguga na sua vitrine?</h2>
-        <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="mt-10 inline-block rounded-lg bg-primary px-10 py-4 font-bold text-primary-foreground hover:bg-primary/90">Quero ser revendedor</a>
+      <section id="como-funciona" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">Como funciona</p>
+        <h2 className="mt-3 max-w-2xl font-display text-4xl font-extrabold md:text-5xl">Somos fábrica. Você revende.</h2>
+        <div className="mt-12 grid gap-8 md:grid-cols-4">
+          {passos.map(([t, d], i) => (
+            <div key={t} className="border-t-2 border-primary pt-6">
+              <p className="font-mono text-sm text-accent">0{i + 1}</p>
+              <h3 className="mt-3 font-display text-xl font-bold">{t}</h3><p className="mt-2 text-muted-foreground">{d}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <footer className="bg-cocoa py-10 text-center text-sm text-cocoa-foreground/70">
-        <p className="font-display text-xl text-cocoa-foreground">Brownie Duguga</p>
-        <p className="mt-2">Fábrica em Paulista - PE · Vendas exclusivas para empresas</p>
+      <section className="bg-cocoa py-24 text-cocoa-foreground">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-2">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">Diferenciais</p>
+            <h2 className="mt-3 font-display text-4xl font-extrabold md:text-5xl">Qualidade de confeitaria, escala de fábrica.</h2>
+            <ul className="mt-8 grid gap-4">
+              {["Cacau de verdade, sem atalhos", "Padrão idêntico em cada unidade", "Embalagem individual com validade", "Atendimento comercial dedicado"].map((x) => (
+                <li key={x} className="flex gap-3"><span className="text-accent">●</span>{x}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col justify-center rounded-3xl bg-accent p-10 text-accent-foreground">
+            <h3 className="font-display text-3xl font-extrabold">Tenha Duguga na sua vitrine.</h3>
+            <p className="mt-3 opacity-80">Cadastre seu CNPJ e receba a tabela de atacado.</p>
+            <a href="#cadastro" className="mt-8 inline-block self-start rounded-xl bg-cocoa px-8 py-4 font-bold text-cocoa-foreground">Quero revender</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="duvidas" className="mx-auto max-w-3xl scroll-mt-24 px-6 py-24">
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">Dúvidas frequentes</p>
+        <h2 className="mt-3 font-display text-4xl font-extrabold">Perguntas comuns</h2>
+        <div className="mt-10 divide-y divide-border border-y border-border">
+          {faq.map(([q, a]) => (
+            <details key={q} className="group py-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-display text-lg font-bold">{q}<span className="text-accent transition group-open:rotate-45">+</span></summary>
+              <p className="mt-3 text-muted-foreground">{a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-secondary py-20 text-center">
+        <h2 className="mx-auto max-w-3xl px-6 font-display text-4xl font-extrabold md:text-6xl">Pronto para vender o brownie que todo mundo pede?</h2>
+        <a href="#cadastro" className="mt-10 inline-block rounded-xl bg-primary px-10 py-4 font-bold text-primary-foreground hover:bg-primary/90">Fazer meu cadastro</a>
+      </section>
+
+      <footer className="bg-cocoa py-10 text-cocoa-foreground">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm md:flex-row">
+          <p className="font-display text-xl font-extrabold">Brownie<span className="text-accent"> Duguga</span></p>
+          <p className="opacity-70">Vendas exclusivas para empresas (CNPJ)</p>
+          <a href="https://www.instagram.com/brownieduguga/" target="_blank" rel="noreferrer" className="font-semibold hover:text-accent">@brownieduguga</a>
+        </div>
       </footer>
     </div>
   );
