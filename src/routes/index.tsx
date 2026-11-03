@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 
 const nav = [["Para quem", "#segmentos"], ["Produtos", "#produtos"], ["Como funciona", "#como-funciona"], ["Dúvidas", "#duvidas"]];
 const segmentos = [
-  ["Mercadinhos", "Giro rápido no caixa e na gôndola."],
+  ["Mercados", "Giro rápido no caixa e na gôndola."],
   ["Lojas de conveniência", "Compra por impulso, margem alta."],
   ["Lanchonetes", "A sobremesa pronta do seu cardápio."],
   ["Cafeterias", "O par perfeito para o café."],
@@ -53,6 +53,7 @@ const faq = [
   ["Vocês vendem para pessoa física?", "Não. Atendemos exclusivamente empresas com CNPJ, com pedido mínimo por lote."],
   ["Qual é o pedido mínimo?", "O pedido mínimo é informado pela nossa equipe comercial junto com a tabela de atacado."],
   ["Os brownies vêm embalados?", "Sim, cada unidade vem embalada individualmente, pronta para revenda."],
+  ["De onde vocês são?", "Somos do Estado de Pernambuco, localizados na cidade de Paulista. Endereço: Av. Dr. Cláudio José Gueiros Leite, 950 - Bairro: Janga, CEP: 53439-000."],
   ["Como faço para começar?", "Preencha o cadastro no topo da página. Nossa equipe entra em contato pelo WhatsApp."],
 ];
 
@@ -74,11 +75,14 @@ function Index() {
         <div className="absolute inset-0 bg-gradient-to-r from-cocoa via-cocoa/90 to-cocoa/40" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 py-16 md:grid-cols-[1.1fr_1fr] md:py-24">
           <div>
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-accent">Fábrica · Atacado para CNPJ</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 font-display text-sm font-extrabold uppercase tracking-wide text-accent-foreground shadow-lg">🤎 Feito com 100% cacau</span>
+              <span className="font-mono text-xs uppercase tracking-[0.25em] text-accent">Fábrica · Atacado para CNPJ</span>
+            </div>
             <h1 className="mt-5 font-display text-5xl font-extrabold leading-[0.98] tracking-tight md:text-7xl">O brownie que <span className="text-accent">vende sozinho</span> no seu balcão.</h1>
-            <p className="mt-6 max-w-md text-lg opacity-80">Cacau de verdade, recheio Duguga e padrão de qualidade em cada unidade. Leve para o seu estabelecimento com preço de fábrica.</p>
+            <p className="mt-6 max-w-md text-lg opacity-80">Feito com <strong className="text-accent">100% cacau</strong>, recheio Duguga e padrão de qualidade em cada unidade. Leve para o seu estabelecimento com preço de fábrica.</p>
             <div className="mt-10 flex gap-10">
-              {[["100%", "cacau de verdade"], ["B2B", "preço de fábrica"], ["1 a 1", "embalagem individual"]].map(([n, l]) => (
+              {[["100%", "cacau"], ["B2B", "preço de fábrica"], ["1 a 1", "embalagem individual"]].map(([n, l]) => (
                 <div key={l}><p className="font-display text-3xl font-extrabold text-accent">{n}</p><p className="text-sm opacity-70">{l}</p></div>
               ))}
             </div>
@@ -88,7 +92,7 @@ function Index() {
       </section>
 
       <div className="overflow-hidden bg-accent py-4 text-accent-foreground">
-        <p className="text-center font-mono text-sm font-medium uppercase tracking-widest">Somente pessoa jurídica • Pedido mínimo por lote • Produção artesanal em escala</p>
+        <p className="text-center font-mono text-sm font-medium uppercase tracking-widest">Feito com 100% cacau • Somente pessoa jurídica • Pedido mínimo por lote • Produção artesanal em escala</p>
       </div>
 
       <section id="segmentos" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
@@ -137,7 +141,7 @@ function Index() {
             <p className="font-mono text-xs uppercase tracking-widest text-accent">Diferenciais</p>
             <h2 className="mt-3 font-display text-4xl font-extrabold md:text-5xl">Qualidade de confeitaria, escala de fábrica.</h2>
             <ul className="mt-8 grid gap-4">
-              {["Cacau de verdade, sem atalhos", "Padrão idêntico em cada unidade", "Embalagem individual com validade", "Atendimento comercial dedicado"].map((x) => (
+              {["Feito com 100% cacau, sem atalhos", "Padrão idêntico em cada unidade", "Embalagem individual com validade", "Atendimento comercial dedicado"].map((x) => (
                 <li key={x} className="flex gap-3"><span className="text-accent">●</span>{x}</li>
               ))}
             </ul>
